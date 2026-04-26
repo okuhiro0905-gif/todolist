@@ -1,0 +1,1102 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#ff6b57" />
+  <title>Quadrant Planner</title>
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="apple-touch-icon" href="./icon-192.png" />
+
+  <style>
+    :root{
+      --bg:#f7f8fb;
+      --card:#fff;
+      --text:#111827;
+      --muted:#6b7280;
+      --line:#e5e7eb;
+      --accent:#ff5a4f;
+      --blue:#2f80ed;
+      --green:#27ae60;
+      --orange:#f2994a;
+      --shadow:0 18px 45px rgba(17,24,39,.08);
+    }
+
+    *{
+      box-sizing:border-box;
+      -webkit-tap-highlight-color:transparent;
+    }
+
+    body{
+      margin:0;
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans SC",sans-serif;
+      background:linear-gradient(180deg,#fff 0%,var(--bg) 35%,#fff 100%);
+      color:var(--text);
+    }
+
+    .app{
+      max-width:480px;
+      margin:0 auto;
+      min-height:100dvh;
+      padding:env(safe-area-inset-top) 14px calc(86px + env(safe-area-inset-bottom));
+    }
+
+    header{
+      position:sticky;
+      top:0;
+      z-index:10;
+      background:rgba(247,248,251,.82);
+      backdrop-filter:blur(18px);
+      margin:0 -14px;
+      padding:14px 14px 10px;
+      border-bottom:1px solid rgba(229,231,235,.75);
+    }
+
+    .top{
+      display:flex;
+      align-items:center;
+      gap:12px;
+    }
+
+    .logo{
+      width:44px;
+      height:44px;
+      border-radius:13px;
+      background:linear-gradient(135deg,#ff4e57,#ff9d50);
+      display:grid;
+      place-items:center;
+      color:white;
+      font-size:28px;
+      font-weight:900;
+      box-shadow:0 12px 24px rgba(255,90,79,.28);
+    }
+
+    h1{
+      font-size:22px;
+      line-height:1.1;
+      margin:0;
+    }
+
+    .sub{
+      font-size:13px;
+      color:var(--muted);
+      margin-top:3px;
+    }
+
+    .addBtn{
+      margin-left:auto;
+      width:42px;
+      height:42px;
+      border-radius:50%;
+      border:0;
+      background:#111827;
+      color:#fff;
+      font-size:26px;
+      line-height:1;
+      box-shadow:var(--shadow);
+    }
+
+    .tabs{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      margin-top:14px;
+      background:#edf0f5;
+      border-radius:16px;
+      padding:4px;
+    }
+
+    .tab{
+      border:0;
+      background:transparent;
+      border-radius:13px;
+      padding:10px;
+      font-weight:700;
+      color:#6b7280;
+    }
+
+    .tab.active{
+      background:white;
+      color:#ff4f4f;
+      box-shadow:0 6px 18px rgba(17,24,39,.08);
+    }
+
+    .view{
+      display:none;
+    }
+
+    .view.active{
+      display:block;
+    }
+
+    .summary{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:10px;
+      margin:14px 0;
+    }
+
+    .mini{
+      background:white;
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:12px;
+      box-shadow:0 10px 26px rgba(17,24,39,.04);
+    }
+
+    .num{
+      font-size:22px;
+      font-weight:900;
+    }
+
+    .label{
+      font-size:12px;
+      color:var(--muted);
+      margin-top:2px;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+    }
+
+    .quad{
+      min-height:154px;
+      border-radius:20px;
+      padding:12px;
+      border:1px solid var(--line);
+      background:white;
+      box-shadow:0 10px 28px rgba(17,24,39,.05);
+    }
+
+    .q1{background:linear-gradient(135deg,#fff,#fff1f1);}
+    .q2{background:linear-gradient(135deg,#fff,#fff6ed);}
+    .q3{background:linear-gradient(135deg,#fff,#eff6ff);}
+    .q4{background:linear-gradient(135deg,#fff,#effaf3);}
+
+    .qHead{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      margin-bottom:8px;
+    }
+
+    .qTitle{
+      font-size:14px;
+      font-weight:900;
+    }
+
+    .badge{
+      min-width:24px;
+      height:24px;
+      border-radius:999px;
+      color:white;
+      font-size:12px;
+      font-weight:800;
+      display:grid;
+      place-items:center;
+      background:var(--accent);
+    }
+
+    .q2 .badge{background:var(--orange);}
+    .q3 .badge{background:var(--blue);}
+    .q4 .badge{background:var(--green);}
+
+    .task{
+      display:flex;
+      gap:8px;
+      align-items:flex-start;
+      padding:7px 0;
+      border-top:1px solid rgba(229,231,235,.65);
+      font-size:13px;
+    }
+
+    .task:first-of-type{
+      border-top:0;
+    }
+
+    .check{
+      width:15px;
+      height:15px;
+      border:1.5px solid #c7ccd6;
+      border-radius:4px;
+      margin-top:1px;
+      flex:0 0 auto;
+    }
+
+    .task.done .check{
+      background:var(--accent);
+      border-color:var(--accent);
+    }
+
+    .task.done .txt{
+      text-decoration:line-through;
+      color:#9ca3af;
+    }
+
+    .empty{
+      font-size:12px;
+      color:#9ca3af;
+      padding:16px 0;
+    }
+
+    .calendarCard,.detailCard{
+      background:white;
+      border:1px solid var(--line);
+      border-radius:24px;
+      padding:14px;
+      margin-top:14px;
+      box-shadow:var(--shadow);
+    }
+
+    .calTop{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      margin-bottom:10px;
+    }
+
+    .calTop button,.smallBtn{
+      border:1px solid var(--line);
+      background:#fff;
+      border-radius:12px;
+      padding:8px 10px;
+      font-weight:700;
+    }
+
+    .monthTitle{
+      font-weight:900;
+    }
+
+    .week,.days{
+      display:grid;
+      grid-template-columns:repeat(7,1fr);
+      text-align:center;
+    }
+
+    .week div{
+      font-size:12px;
+      color:var(--muted);
+      padding:8px 0;
+    }
+
+    .day{
+      min-height:42px;
+      border-radius:13px;
+      padding:6px 0;
+      font-size:13px;
+      position:relative;
+    }
+
+    .day.today{
+      background:#fff0ef;
+      color:var(--accent);
+      font-weight:900;
+    }
+
+    .day.selected{
+      background:var(--accent);
+      color:white;
+      font-weight:900;
+    }
+
+    .dot{
+      width:5px;
+      height:5px;
+      border-radius:50%;
+      background:var(--accent);
+      position:absolute;
+      bottom:5px;
+      left:50%;
+      transform:translateX(-50%);
+    }
+
+    .selected .dot{
+      background:#fff;
+    }
+
+    .dayList{
+      margin-top:12px;
+      border-top:1px solid var(--line);
+      padding-top:10px;
+    }
+
+    .row{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      padding:12px 4px;
+      border-bottom:1px solid #f0f1f4;
+    }
+
+    .row:last-child{
+      border-bottom:0;
+    }
+
+    .rowDot{
+      width:9px;
+      height:9px;
+      border-radius:50%;
+      background:var(--accent);
+    }
+
+    .rowText{
+      flex:1;
+    }
+
+    .rowTitle{
+      font-weight:800;
+      font-size:14px;
+    }
+
+    .rowMeta{
+      font-size:12px;
+      color:var(--muted);
+      margin-top:2px;
+    }
+
+    .chev{
+      color:#c0c4cc;
+    }
+
+    .detailHead{
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+
+    .back{
+      border:0;
+      background:#f3f4f6;
+      border-radius:12px;
+      width:38px;
+      height:38px;
+      font-size:22px;
+    }
+
+    .detailHead h2{
+      font-size:18px;
+      margin:0;
+      flex:1;
+      text-align:center;
+    }
+
+    .sortIntro{
+      background:linear-gradient(135deg,#fff7f5,#fff);
+      border:1px solid #ffe0dc;
+      border-radius:20px;
+      padding:12px 14px;
+      margin:14px 0;
+      color:#374151;
+      font-size:13px;
+      line-height:1.45;
+    }
+
+    .sortGroup{
+      background:#fff;
+      border:1px solid var(--line);
+      border-radius:22px;
+      margin:12px 0;
+      padding:12px;
+      box-shadow:0 10px 28px rgba(17,24,39,.05);
+    }
+
+    .sortGroupHead{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      margin-bottom:10px;
+    }
+
+    .sortGroupTitle{
+      font-weight:900;
+    }
+
+    .sortCount{
+      font-size:12px;
+      color:var(--muted);
+      background:#f3f4f6;
+      border-radius:999px;
+      padding:5px 9px;
+    }
+
+    .dragList{
+      min-height:58px;
+      padding:4px;
+      border-radius:18px;
+      transition:.16s ease;
+    }
+
+    .dragList.dragOver{
+      outline:2px dashed rgba(255,90,79,.5);
+      background:rgba(255,90,79,.05);
+    }
+
+    .dragItem{
+      display:grid;
+      grid-template-columns:auto 1fr auto;
+      gap:10px;
+      align-items:center;
+      background:#fafafa;
+      border:1px solid #edf0f5;
+      border-radius:15px;
+      padding:12px;
+      margin:8px 0;
+      touch-action:none;
+    }
+
+    .handle{
+      font-size:18px;
+      color:#9ca3af;
+      cursor:grab;
+    }
+
+    .sortTaskTitle{
+      font-weight:800;
+      font-size:14px;
+    }
+
+    .sortTaskMeta{
+      font-size:12px;
+      color:var(--muted);
+      margin-top:2px;
+    }
+
+    .delete{
+      border:0;
+      background:#f3f4f6;
+      border-radius:11px;
+      padding:8px;
+      color:#6b7280;
+    }
+
+    .dragging{
+      opacity:.45;
+    }
+
+    nav{
+      position:fixed;
+      left:50%;
+      transform:translateX(-50%);
+      bottom:0;
+      width:min(480px,100%);
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:6px;
+      background:rgba(255,255,255,.88);
+      backdrop-filter:blur(18px);
+      border-top:1px solid var(--line);
+      padding:8px 12px calc(8px + env(safe-area-inset-bottom));
+      z-index:20;
+    }
+
+    .navBtn{
+      border:0;
+      background:transparent;
+      border-radius:16px;
+      padding:8px;
+      color:#6b7280;
+      font-weight:800;
+    }
+
+    .navBtn.active{
+      color:var(--accent);
+      background:#fff1ef;
+    }
+
+    .ico{
+      display:block;
+      font-size:20px;
+      margin-bottom:2px;
+    }
+
+    .overlay{
+      position:fixed;
+      inset:0;
+      background:rgba(17,24,39,.35);
+      display:none;
+      align-items:flex-end;
+      z-index:30;
+    }
+
+    .overlay.show{
+      display:flex;
+    }
+
+    .modal{
+      background:white;
+      width:100%;
+      max-width:480px;
+      margin:0 auto;
+      border-radius:28px 28px 0 0;
+      padding:18px 16px calc(20px + env(safe-area-inset-bottom));
+      box-shadow:0 -20px 45px rgba(0,0,0,.12);
+    }
+
+    .modal h3{
+      margin:0 0 14px;
+    }
+
+    .formGrid{
+      display:grid;
+      gap:10px;
+    }
+
+    .modal input,.modal select{
+      width:100%;
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:13px 12px;
+      font-size:15px;
+      background:#fff;
+    }
+
+    .actions{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+      margin-top:14px;
+    }
+
+    .cancel,.save{
+      border:0;
+      border-radius:16px;
+      padding:14px;
+      font-weight:900;
+    }
+
+    .cancel{
+      background:#f3f4f6;
+    }
+
+    .save{
+      background:var(--accent);
+      color:white;
+    }
+
+    @media(min-width:850px){
+      .app{
+        max-width:980px;
+      }
+
+      .grid{
+        grid-template-columns:repeat(4,1fr);
+      }
+
+      nav{
+        max-width:520px;
+        border-radius:28px;
+        bottom:16px;
+        border:1px solid var(--line);
+        box-shadow:var(--shadow);
+      }
+    }
+  </style>
+</head>
+
+<body>
+<div class="app">
+  <header>
+    <div class="top">
+      <div class="logo">✓</div>
+      <div>
+        <h1>Quadrant Planner</h1>
+        <div class="sub">四象限待办 · 高效管理每一天</div>
+      </div>
+      <button class="addBtn" id="openAdd">+</button>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" data-tab="home">四象限</button>
+      <button class="tab" data-tab="calendar">日历视图</button>
+    </div>
+  </header>
+
+  <main>
+    <section id="home" class="view active">
+      <div class="summary">
+        <div class="mini">
+          <div class="num" id="total">0</div>
+          <div class="label">全部任务</div>
+        </div>
+        <div class="mini">
+          <div class="num" id="todo">0</div>
+          <div class="label">待完成</div>
+        </div>
+        <div class="mini">
+          <div class="num" id="done">0</div>
+          <div class="label">已完成</div>
+        </div>
+      </div>
+
+      <div class="grid" id="quadrants"></div>
+    </section>
+
+    <section id="calendar" class="view">
+      <div class="calendarCard">
+        <div class="calTop">
+          <button id="prevMonth">‹</button>
+          <div class="monthTitle" id="monthTitle"></div>
+          <button id="nextMonth">›</button>
+        </div>
+
+        <div class="week">
+          <div>日</div>
+          <div>一</div>
+          <div>二</div>
+          <div>三</div>
+          <div>四</div>
+          <div>五</div>
+          <div>六</div>
+        </div>
+
+        <div class="days" id="days"></div>
+        <div class="dayList" id="dayList"></div>
+      </div>
+    </section>
+
+    <section id="detail" class="view">
+      <div class="detailCard">
+        <div class="detailHead">
+          <button class="back" id="backBtn">‹</button>
+          <h2 id="detailTitle">任务排序</h2>
+          <button class="smallBtn">拖拽</button>
+        </div>
+
+        <div class="sortIntro">
+          拖拽任务即可调整顺序；拖到其他象限，会自动改变任务类目。
+        </div>
+
+        <div id="detailList"></div>
+        <div class="empty" id="detailEmpty">暂无任务</div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<nav>
+  <button class="navBtn active" data-go="home">
+    <span class="ico">▦</span>
+    四象限
+  </button>
+  <button class="navBtn" data-go="calendar">
+    <span class="ico">▣</span>
+    日历
+  </button>
+  <button class="navBtn" data-go="detail">
+    <span class="ico">☷</span>
+    排序
+  </button>
+</nav>
+
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <h3>添加新任务</h3>
+
+    <div class="formGrid">
+      <input id="taskText" placeholder="例如：学习新技能" />
+
+      <select id="taskQuad">
+        <option value="q1">重要且紧急</option>
+        <option value="q2">重要不紧急</option>
+        <option value="q3">紧急不重要</option>
+        <option value="q4">不重要不紧急</option>
+      </select>
+
+      <input id="taskDate" type="date" />
+    </div>
+
+    <div class="actions">
+      <button class="cancel" id="cancelAdd">取消</button>
+      <button class="save" id="saveAdd">保存</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const quads={
+  q1:{t:'重要且紧急',c:'q1'},
+  q2:{t:'重要不紧急',c:'q2'},
+  q3:{t:'紧急不重要',c:'q3'},
+  q4:{t:'不重要不紧急',c:'q4'}
+};
+
+const quadOrder=['q1','q2','q3','q4'];
+
+let tasks=JSON.parse(localStorage.getItem('quadrant-planner-tasks')||'[]').map((t,i)=>({
+  ...t,
+  order:typeof t.order==='number'?t.order:i
+}));
+
+let month=new Date();
+let selectedDate=new Date().toISOString().slice(0,10);
+
+function uid(){
+  return Date.now().toString(36)+Math.random().toString(36).slice(2);
+}
+
+function sortByOrder(a,b){
+  return (a.order??0)-(b.order??0);
+}
+
+function save(){
+  localStorage.setItem('quadrant-planner-tasks',JSON.stringify(tasks));
+  render();
+}
+
+function addTask(text,quad,date){
+  if(!text.trim())return;
+
+  const maxOrder=Math.max(
+    0,
+    ...tasks.filter(t=>t.quad===quad).map(t=>t.order||0)
+  );
+
+  tasks.push({
+    id:uid(),
+    text:text.trim(),
+    quad,
+    date:date||'',
+    done:false,
+    star:false,
+    order:maxOrder+1
+  });
+
+  save();
+}
+
+function switchView(v){
+  document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));
+  document.getElementById(v).classList.add('active');
+
+  document.querySelectorAll('.tab').forEach(x=>{
+    x.classList.toggle('active',x.dataset.tab===v);
+  });
+
+  document.querySelectorAll('.navBtn').forEach(x=>{
+    x.classList.toggle('active',x.dataset.go===v);
+  });
+
+  if(v==='detail')renderDetail();
+}
+
+function render(){
+  renderHome();
+  renderCalendar();
+  renderDetail();
+
+  document.getElementById('total').textContent=tasks.length;
+  document.getElementById('todo').textContent=tasks.filter(t=>!t.done).length;
+  document.getElementById('done').textContent=tasks.filter(t=>t.done).length;
+}
+
+function renderHome(){
+  const box=document.getElementById('quadrants');
+  box.innerHTML='';
+
+  Object.entries(quads).forEach(([id,q])=>{
+    const list=tasks.filter(t=>t.quad===id).sort(sortByOrder);
+
+    const el=document.createElement('div');
+    el.className='quad '+q.c;
+
+    el.innerHTML=`
+      <div class="qHead">
+        <div class="qTitle">${q.t}</div>
+        <div class="badge">${list.length}</div>
+      </div>
+      ${
+        list.slice(0,4).map(t=>`
+          <div class="task ${t.done?'done':''}" data-id="${t.id}">
+            <span class="check"></span>
+            <span class="txt">${t.text}</span>
+          </div>
+        `).join('') || '<div class="empty">暂无任务</div>'
+      }
+    `;
+
+    el.onclick=e=>{
+      if(e.target.closest('.task')){
+        const id=e.target.closest('.task').dataset.id;
+        tasks=tasks.map(t=>t.id===id?{...t,done:!t.done}:t);
+        save();
+        return;
+      }
+
+      switchView('detail');
+    };
+
+    box.appendChild(el);
+  });
+}
+
+function dateKey(d){
+  return d.toISOString().slice(0,10);
+}
+
+function renderCalendar(){
+  const y=month.getFullYear();
+  const m=month.getMonth();
+
+  document.getElementById('monthTitle').textContent=`${y}年${m+1}月`;
+
+  const first=new Date(y,m,1);
+  const last=new Date(y,m+1,0);
+  const start=first.getDay();
+
+  const days=document.getElementById('days');
+  days.innerHTML='';
+
+  for(let i=0;i<start;i++){
+    days.appendChild(document.createElement('div'));
+  }
+
+  for(let d=1;d<=last.getDate();d++){
+    const dt=new Date(y,m,d);
+    const key=dateKey(dt);
+    const has=tasks.some(t=>t.date===key);
+
+    const el=document.createElement('div');
+    el.className='day'
+      +(key===dateKey(new Date())?' today':'')
+      +(key===selectedDate?' selected':'');
+
+    el.innerHTML=d+(has?'<span class="dot"></span>':'');
+
+    el.onclick=()=>{
+      selectedDate=key;
+      renderCalendar();
+    };
+
+    days.appendChild(el);
+  }
+
+  const list=document.getElementById('dayList');
+
+  const dayTasks=tasks
+    .filter(t=>t.date===selectedDate)
+    .sort((a,b)=>quadOrder.indexOf(a.quad)-quadOrder.indexOf(b.quad)||sortByOrder(a,b));
+
+  list.innerHTML=`
+    <b>${selectedDate}</b>
+    ${
+      dayTasks.map(t=>`
+        <div class="row">
+          <span class="rowDot"></span>
+          <div class="rowText">
+            <div class="rowTitle">${t.text}</div>
+            <div class="rowMeta">${quads[t.quad].t}</div>
+          </div>
+          <span class="chev">›</span>
+        </div>
+      `).join('') || '<div class="empty">这一天没有任务</div>'
+    }
+  `;
+}
+
+function renderDetail(){
+  const wrap=document.getElementById('detailList');
+  wrap.innerHTML='';
+
+  document.getElementById('detailEmpty').style.display=tasks.length?'none':'block';
+
+  quadOrder.forEach(qid=>{
+    const q=quads[qid];
+    const groupTasks=tasks.filter(t=>t.quad===qid).sort(sortByOrder);
+
+    const group=document.createElement('div');
+    group.className='sortGroup '+q.c;
+
+    group.innerHTML=`
+      <div class="sortGroupHead">
+        <div class="sortGroupTitle">${q.t}</div>
+        <div class="sortCount">${groupTasks.length} 个任务</div>
+      </div>
+    `;
+
+    const list=document.createElement('div');
+    list.className='dragList';
+    list.dataset.quad=qid;
+
+    if(groupTasks.length===0){
+      list.innerHTML='<div class="empty">拖到这里改变类目</div>';
+    }else{
+      groupTasks.forEach(t=>{
+        const item=document.createElement('div');
+        item.className='dragItem';
+        item.draggable=true;
+        item.dataset.id=t.id;
+
+        item.innerHTML=`
+          <span class="handle">☰</span>
+          <div>
+            <div class="sortTaskTitle">${t.text}</div>
+            <div class="sortTaskMeta">${t.date||'未设置日期'} · ${t.done?'已完成':'待完成'}</div>
+          </div>
+          <button class="delete" data-del="${t.id}">删除</button>
+        `;
+
+        list.appendChild(item);
+      });
+    }
+
+    group.appendChild(list);
+    wrap.appendChild(group);
+
+    enableDrag(list);
+  });
+
+  document.querySelectorAll('[data-del]').forEach(btn=>{
+    btn.onclick=e=>{
+      e.stopPropagation();
+      const id=btn.dataset.del;
+      tasks=tasks.filter(t=>t.id!==id);
+      save();
+    };
+  });
+}
+
+function enableDrag(list){
+  list.addEventListener('dragover',e=>{
+    e.preventDefault();
+
+    const dragging=document.querySelector('.dragging');
+    if(!dragging)return;
+
+    list.classList.add('dragOver');
+
+    const empty=list.querySelector('.empty');
+    if(empty)empty.remove();
+
+    const after=getDragAfterElement(list,e.clientY);
+
+    if(after==null){
+      list.appendChild(dragging);
+    }else{
+      list.insertBefore(dragging,after);
+    }
+  });
+
+  list.addEventListener('dragleave',()=>{
+    list.classList.remove('dragOver');
+  });
+
+  list.addEventListener('drop',e=>{
+    e.preventDefault();
+
+    list.classList.remove('dragOver');
+
+    const dragging=document.querySelector('.dragging');
+    if(!dragging)return;
+
+    const id=dragging.dataset.id;
+    const newQuad=list.dataset.quad;
+
+    tasks=tasks.map(t=>{
+      if(t.id===id){
+        return {...t,quad:newQuad};
+      }
+      return t;
+    });
+
+    saveDragOrder();
+  });
+
+  list.querySelectorAll('.dragItem').forEach(item=>{
+    item.addEventListener('dragstart',()=>{
+      item.classList.add('dragging');
+    });
+
+    item.addEventListener('dragend',()=>{
+      item.classList.remove('dragging');
+      document.querySelectorAll('.dragList').forEach(l=>l.classList.remove('dragOver'));
+      saveDragOrder();
+    });
+  });
+}
+
+function saveDragOrder(){
+  document.querySelectorAll('.dragList').forEach(list=>{
+    const qid=list.dataset.quad;
+
+    const ids=[...list.querySelectorAll('.dragItem')].map(i=>i.dataset.id);
+
+    tasks=tasks.map(t=>{
+      const idx=ids.indexOf(t.id);
+
+      if(idx!==-1){
+        return {
+          ...t,
+          quad:qid,
+          order:idx+1
+        };
+      }
+
+      return t;
+    });
+  });
+
+  localStorage.setItem('quadrant-planner-tasks',JSON.stringify(tasks));
+  render();
+}
+
+function getDragAfterElement(container,y){
+  const els=[...container.querySelectorAll('.dragItem:not(.dragging)')];
+
+  return els.reduce((closest,child)=>{
+    const box=child.getBoundingClientRect();
+    const offset=y-box.top-box.height/2;
+
+    if(offset<0 && offset>closest.offset){
+      return {offset:offset,element:child};
+    }else{
+      return closest;
+    }
+  },{offset:Number.NEGATIVE_INFINITY}).element;
+}
+
+document.getElementById('openAdd').onclick=()=>{
+  document.getElementById('overlay').classList.add('show');
+};
+
+document.getElementById('cancelAdd').onclick=()=>{
+  document.getElementById('overlay').classList.remove('show');
+};
+
+document.getElementById('saveAdd').onclick=()=>{
+  addTask(taskText.value,taskQuad.value,taskDate.value);
+  taskText.value='';
+  taskDate.value='';
+  document.getElementById('overlay').classList.remove('show');
+};
+
+document.getElementById('backBtn').onclick=()=>{
+  switchView('home');
+};
+
+document.querySelectorAll('.tab').forEach(b=>{
+  b.onclick=()=>switchView(b.dataset.tab);
+});
+
+document.querySelectorAll('.navBtn').forEach(b=>{
+  b.onclick=()=>switchView(b.dataset.go);
+});
+
+prevMonth.onclick=()=>{
+  month=new Date(month.getFullYear(),month.getMonth()-1,1);
+  renderCalendar();
+};
+
+nextMonth.onclick=()=>{
+  month=new Date(month.getFullYear(),month.getMonth()+1,1);
+  renderCalendar();
+};
+
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('./sw.js');
+}
+
+render();
+</script>
+</body>
+</html>
