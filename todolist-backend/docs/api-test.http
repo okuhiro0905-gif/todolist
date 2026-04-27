@@ -1,0 +1,41 @@
+### 1. Get all tasks
+GET http://localhost:8080/api/tasks
+
+
+### 2. Create task
+POST http://localhost:8080/api/tasks
+Content-Type: application/json
+
+{
+  "title": "Javaの復習をする",
+  "category": "study",
+  "completed": false,
+  "sortOrder": 1
+}
+
+
+### 3. Update task
+PUT http://localhost:8080/api/tasks/1
+Content-Type: application/json
+
+{
+  "title": "Spring Boot APIを作成する",
+  "category": "study",
+  "completed": true,
+  "sortOrder": 1
+}
+
+
+### 4. Update task order
+PUT http://localhost:8080/api/tasks/order
+Content-Type: application/json
+
+{
+  "taskIds": [2, 1, 3]
+}
+
+
+### 5. Delete task
+DELETE http://localhost:8080/api/tasks/1
+
+

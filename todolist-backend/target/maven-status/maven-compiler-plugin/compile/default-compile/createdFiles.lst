@@ -1,0 +1,6 @@
+com\example\todolist\dto\TaskRequest.class
+com\example\todolist\entity\Task.class
+com\example\todolist\repository\TaskRepository.class
+com\example\todolist\TodolistBackendApplication.class
+com\example\todolist\controller\TaskController.class
+com\example\todolist\dto\TaskOrderRequest.class
